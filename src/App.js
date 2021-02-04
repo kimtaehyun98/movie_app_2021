@@ -1,48 +1,52 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import axios from 'axios';
+import Movie from './Movie';
+import './App.css';
 
-function Food({props}){
-  return (
-    <div>
-      <h3>This food is "{props.name}" and this cost {props.cost}.</h3>
-      <h2>This is rating on {props.rating}</h2>
-    </div>
-  );  // 이 코드는 HTML이 아니라 JSX 이다!
-}
+class App extends React.Component {
+  state = {
+    isLoading: false,
+    movies:[], // 영화 객체들이 저장되어 있는 배열
+  };
+  
+  get_movies = async() => {
+    const {
+      data: {
+        data : { movies },
+      },
+    } = await axios.get('https://yts-proxy.now.sh/list_movies.json?sort_by=rating');  // axios로 API 호출, 반환된 데이터를 movies에 저장, 평점 순으로 정렬
+    this.setState({movies, isLoading : false}); // 데이터를 다 받아왔으니 준비가 됨!
+  }
 
-const foodarr = [
-  {
-    id : 1,
-    name : 'kimchi',
-    cost : '30$',
-    rating : 3,
-  },
-  {
-    id : 2,
-    name : 'bread',
-    cost : '5$',
-    rating : 2,
-  },
-  {
-    id : 3,
-    name : '떡볶이',
-    cost : '4$',
-    rating : 1,
-  },
-];
+  componentDidMount(){
+    this.get_movies();
+  }
 
-Food.propTypes = {
-  name : PropTypes.string.isRequired,
-  cost : PropTypes.string.isRequired,
-  rating : PropTypes.number.isRequired,
-}
-
-function App() {
-  return (
-    <div>
-      {foodarr.map(dish => <Food key = {dish.id} props = {dish}/>)}
-    </div>
-  );
+  render(){
+    const {isLoading, movies} = this.state;
+    return (
+      <section class = "container">
+        {isLoading ? (
+          <div class = "loader">
+            <span class = "loader__text">'Loading...'</span> 
+            </div>
+            ) : (
+              <div class = "movies"> 
+              {movies.map((movie) => (
+                <Movie 
+                  key = {movie.id}
+                  id = {movie.id}
+                  year = {movie.year}
+                  title = {movie.title}
+                  summary = {movie.summary}
+                  poster = {movie.medium_cover_image}
+                />
+          ))}
+        </div>
+        )}
+      </section>
+    );
+  }
 }
 
 export default App;
